@@ -1,0 +1,6 @@
+@"
+.env
+.venv/
+__pycache__/
+node_modules/
+"@ | Set-Content -Path .gitignore -Encoding utf8

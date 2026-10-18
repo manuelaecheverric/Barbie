@@ -1,0 +1,16 @@
+# Agente
+langchain
+langgraph
+langchain-ollama
+langchain-text-splitters
+
+# Base vectorial (pgvector en Supabase)
+langchain-postgres
+psycopg[binary]
+
+# Lectura de documentos
+pypdf
+python-docx
+
+# Variables de entorno
+python-dotenv

@@ -1,30 +1,26 @@
 """
 Base vectorial (pgvector en Supabase) y carga de documentos.
 
-⚠️ VERSIÓN FALSA (stub) para integrar la API desde ya.
-Las firmas NO cambian cuando llegue la versión real.
-
-Contrato:
+Contrato (lo usa la API):
     ingest(file_path, doc_id, filename) -> int   (número de fragmentos)
-    delete_document(doc_id) -> None
+    delete_document(doc_id) -> int               (fragmentos borrados)
+
+Extra (lo usa el agente y los scripts):
+    search(query, k=4, min_score=None) -> [{"doc", "doc_id", "fragment", "score"}]
+    listar_documentos() -> [{"doc_id", "filename", "fragmentos"}]
 
 Formatos soportados: PDF, TXT, MD, DOCX, CSV.
-La API debe validar la extensión antes de llamar a ingest().
+ingest() lanza ValueError si el formato no es válido o el archivo no tiene texto;
+la API puede devolver ese mensaje al usuario.
 """
 
-from pathlib import Path
+from .loaders import FORMATOS_SOPORTADOS
+from .store import delete_document, ingest, listar_documentos, search
 
-FORMATOS_SOPORTADOS = {".pdf", ".txt", ".md", ".docx", ".csv"}
-
-
-def ingest(file_path: str, doc_id: str, filename: str) -> int:
-    extension = Path(filename).suffix.lower()
-    if extension not in FORMATOS_SOPORTADOS:
-        raise ValueError(f"Formato no soportado: {extension}")
-    # Simula que el documento se dividió en 12 fragmentos.
-    return 12
-
-
-def delete_document(doc_id: str) -> None:
-    # La versión real borrará todos los fragmentos con ese doc_id.
-    return None
+__all__ = [
+    "FORMATOS_SOPORTADOS",
+    "ingest",
+    "delete_document",
+    "search",
+    "listar_documentos",
+]

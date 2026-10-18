@@ -1,0 +1,30 @@
+# Despliegue del backend en Render (Blueprint).
+# Render > New > Blueprint > selecciona este repositorio.
+services:
+  - type: web
+    name: pink-oracle-api
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.11
+      - key: APP_ENV
+        value: production
+      - key: DATA_BACKEND
+        value: supabase
+      - key: AGENT_MODE
+        value: mock
+      - key: FRONTEND_URL
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: SUPABASE_JWT_SECRET
+        sync: false
+      - key: OLLAMA_BASE_URL
+        sync: false

@@ -17,7 +17,7 @@ services:
       - key: DATA_BACKEND
         value: supabase
       - key: AGENT_MODE
-        value: mock
+        value: real
       - key: FRONTEND_URL
         sync: false
       - key: SUPABASE_URL
@@ -32,10 +32,12 @@ services:
         sync: false
       - key: OLLAMA_PASS
         sync: false
-      - key: OLLAMA_MODEL
+      - key: LLM_MODEL
         value: qwen2.5:3b
-      - key: EMBEDDING_MODEL
+      - key: EMBED_MODEL
         value: bge-m3
+      - key: SIMILARITY_THRESHOLD
+        value: "0.5"
       # Prefijo obligatorio: postgresql+psycopg:// (Session pooler de Supabase)
       - key: DATABASE_URL
         sync: false

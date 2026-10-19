@@ -45,8 +45,9 @@ Agente inteligente que responde preguntas sobre el universo Barbie: las películ
 │   ├── controllers/         # rutas HTTP: chat, conversaciones, documentos, usuario
 │   ├── services/            # lógica de negocio (chat y carga de documentos)
 │   ├── repositories/        # acceso a datos (Supabase o memoria)
-│   ├── agents/              # agente LangGraph + contrato con la API
-│   ├── vectorstore/         # pgvector y embeddings
+│   ├── agents/              # agente LangGraph: grafo, prompts, LLM (Persona 1)
+│   ├── vectorstore/         # pgvector: carga, fragmentación, búsqueda (Persona 1)
+│   ├── scripts/             # cargar corpus, probar agente, sincronizar biblioteca
 │   ├── supabase/schema.sql  # tablas y políticas RLS
 │   ├── tests/               # pruebas automáticas de la API
 │   ├── requirements.txt
@@ -61,6 +62,7 @@ Agente inteligente que responde preguntas sobre el universo Barbie: las películ
 │   ├── public/              # intro/ (puerta y video), deco/ (logo, estrellas), cursor/ (varita), fondos/
 │   ├── package.json
 │   └── Dockerfile
+├── data/                    # corpus de fichas de Barbie y documento para la demo
 ├── docs/                    # diagrama, capturas, documento técnico y diapositivas
 ├── docker-compose.yml
 ├── render.yaml              # despliegue del backend en Render
@@ -85,15 +87,31 @@ Todos los endpoints de `/api` exigen el header `Authorization: Bearer <token de 
 
 ### Contrato entre la API y el agente
 
-La API llama al agente únicamente a través de tres funciones (ver [`backend/agents/contract.py`](backend/agents/contract.py)):
+La API habla con el agente solo a través de [`backend/services/agent_gateway.py`](backend/services/agent_gateway.py):
 
 ```python
-ask(question, user_id, history) -> {"answer": str, "rejected": bool, "sources": [...]}
-ingest(file_path, document_id, filename) -> int   # número de fragmentos
-delete_document(document_id) -> None
+from agents import ask                                   # Persona 1
+from vectorstore import ingest, delete_document, listar_documentos
+
+ask(question, user_id, history) -> {"answer", "rejected", "sources": [{"doc", "fragment", "score"}], "error"}
+ingest(file_path, doc_id, filename) -> int    # lanza ValueError con un mensaje para el usuario
+delete_document(doc_id) -> int
 ```
 
-Con `AGENT_MODE=mock` se usa un agente simulado, para probar la interfaz sin el modelo. Con `AGENT_MODE=real` se carga `agents/graph.py`.
+- `history` son los últimos 6 mensajes `[{role, content}]`. La API guarda el historial en Supabase.
+- `error: true` (Ollama o la base vectorial caídos) se responde como **503**: el chat muestra el error con "Reintentar" y no se guarda nada.
+- `ingest` corre en segundo plano. Si lanza `ValueError` (formato inválido, PDF escaneado…), la biblioteca muestra ese mensaje en el documento.
+- Con `AGENT_MODE=mock` se usa un agente simulado para probar la interfaz sin Ollama.
+
+### Traer las actualizaciones del agente
+
+La Persona 1 trabaja en la rama `agente`. Para traer sus cambios a `main`:
+
+```powershell
+git checkout main
+git pull origin agente
+git push origin main
+```
 
 ## Ejecutar en local (Windows)
 
@@ -122,6 +140,14 @@ uvicorn app.main:app --reload --port 8000
 ```
 
 Abre http://localhost:8000/docs para ver la API.
+
+Si el corpus ya está cargado en la base vectorial, regístralo en la biblioteca de la app (una sola vez):
+
+```powershell
+python scripts/sincronizar_biblioteca.py
+```
+
+Para cargar el corpus desde cero: `python scripts/cargar_documentos.py ../data/corpus`.
 
 Para correr las pruebas: `python -m pytest -q`
 
@@ -178,9 +204,10 @@ Ese PC tiene que estar encendido durante la demostración. Plan B: correr todo e
 | `SUPABASE_JWT_SECRET` | backend | Solo si el proyecto usa la llave JWT legacy (HS256) |
 | `FRONTEND_URL` | backend | Orígenes permitidos por CORS |
 | `DATA_BACKEND` | backend | `supabase` o `memory` |
-| `AGENT_MODE` / `AGENT_MODULE` | backend | `mock` o `real`, y el módulo del agente |
+| `AGENT_MODE` | backend | `real` (agente de LangGraph) o `mock` (simulado) |
 | `OLLAMA_URL` / `OLLAMA_USER` / `OLLAMA_PASS` | backend | URL de ngrok hacia Ollama y sus credenciales |
-| `OLLAMA_MODEL` / `EMBEDDING_MODEL` | backend | `qwen2.5:3b` y `bge-m3` |
+| `LLM_MODEL` / `EMBED_MODEL` | backend | `qwen2.5:3b` y `bge-m3` |
+| `SIMILARITY_THRESHOLD` | backend | Similitud mínima para aceptar un fragmento (0.5) |
 | `DATABASE_URL` | backend | Postgres de Supabase para pgvector (`postgresql+psycopg://`, Session pooler) |
 | `MAX_UPLOAD_MB` / `ALLOWED_EXTENSIONS` | backend | Límites de carga de archivos |
 | `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` | frontend | Cliente público de Supabase |

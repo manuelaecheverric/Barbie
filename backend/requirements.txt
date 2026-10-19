@@ -10,11 +10,6 @@ supabase==2.15.1
 pytest==8.3.5
 httpx==0.28.1
 
-# --- Agente (Persona 1): agregar aquí ---
-# langchain
-# langgraph
-# langchain-ollama
-# langchain-postgres
-# psycopg[binary]
-# pypdf
-# python-docx
+# --- Agente (Persona 1) ---
+# Se incluye su archivo tal cual: cuando ella lo actualice, Render lo toma solo.
+-r requirements-agente.txt

@@ -31,9 +31,11 @@ create table if not exists public.messages (
 create index if not exists messages_conversation_idx on public.messages (conversation_id, created_at);
 
 -- Documentos de la base de conocimiento (compartida entre usuarios)
+-- id es texto porque el corpus inicial usa ids como "corpus-03-ken";
+-- user_id vacío (null) = documento de la base inicial, nadie lo puede borrar desde la app.
 create table if not exists public.documents (
-  id            uuid primary key default gen_random_uuid(),
-  user_id       uuid not null references auth.users (id) on delete cascade,
+  id            text primary key default gen_random_uuid()::text,
+  user_id       uuid references auth.users (id) on delete set null,
   filename      text not null,
   content_type  text,
   size_bytes    bigint not null default 0,
@@ -70,3 +72,12 @@ create policy "documentos visibles" on public.documents
 drop policy if exists "documentos propios" on public.documents;
 create policy "documentos propios" on public.documents
   for delete to authenticated using (auth.uid() = user_id);
+
+-- ---------------------------------------------------------------------
+-- SOLO si ya habías ejecutado una versión anterior de este archivo
+-- (documents.id como uuid y user_id obligatorio), ejecuta también esto:
+-- ---------------------------------------------------------------------
+-- alter table public.documents alter column id drop default;
+-- alter table public.documents alter column id type text using id::text;
+-- alter table public.documents alter column id set default gen_random_uuid()::text;
+-- alter table public.documents alter column user_id drop not null;

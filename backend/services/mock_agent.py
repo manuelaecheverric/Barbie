@@ -9,7 +9,7 @@ import math
 import os
 import unicodedata
 
-from agents.contract import REJECTION_MESSAGE, AgentAnswer, HistoryItem
+from services.agent_gateway import REJECTION_MESSAGE
 
 _KNOWLEDGE = [
     {
@@ -50,7 +50,7 @@ def _normalize(text: str) -> str:
 
 
 class MockAgent:
-    def ask(self, question: str, user_id: str, history: list[HistoryItem]) -> AgentAnswer:
+    def ask(self, question: str, user_id: str, history: list[dict]) -> dict:
         words = set(_normalize(question).replace("?", " ").replace("¿", " ").replace(",", " ").split())
         hits = []
         for item in _KNOWLEDGE:
@@ -58,7 +58,7 @@ class MockAgent:
             if overlap:
                 hits.append((overlap, item))
         if not hits:
-            return {"answer": REJECTION_MESSAGE, "rejected": True, "sources": []}
+            return {"answer": REJECTION_MESSAGE, "rejected": True, "sources": [], "error": False}
 
         hits.sort(key=lambda h: h[0], reverse=True)
         top = [item for _, item in hits[:2]]
@@ -66,6 +66,7 @@ class MockAgent:
         return {
             "answer": f"{answer}\n\n(Respuesta del agente simulado: aún no está conectado el modelo local.)",
             "rejected": False,
+            "error": False,
             "sources": [
                 {"doc": item["document"], "fragment": item["fragment"], "score": round(0.7 + 0.1 * n, 2)}
                 for n, item in hits[:2]
@@ -79,5 +80,8 @@ class MockAgent:
         # Simula fragmentos de ~1000 caracteres
         return max(1, math.ceil(size / 1000))
 
-    def delete_document(self, document_id: str) -> None:
-        return None
+    def delete_document(self, document_id: str) -> int:
+        return 0
+
+    def list_documents(self) -> list[dict]:
+        return []

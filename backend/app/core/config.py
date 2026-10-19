@@ -23,9 +23,8 @@ class Settings(BaseSettings):
     # "supabase" para producción, "memory" para desarrollo/pruebas sin base de datos
     data_backend: str = ""
 
-    # Agente: "mock" (simulado) o "real" (código LangGraph de la Persona 1)
+    # Agente: "mock" (simulado) o "real" (agents/ y vectorstore/ de la Persona 1)
     agent_mode: str = "mock"
-    agent_module: str = "agents.graph"
     history_window: int = 6
 
     # Documentos

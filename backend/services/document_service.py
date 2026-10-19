@@ -11,6 +11,10 @@ from app.core.config import get_settings
 from app.core.security import CurrentUser
 
 logger = logging.getLogger(__name__)
+INGEST_DOWN_MESSAGE = (
+    "No se pudo procesar el documento porque el modelo de embeddings o la base vectorial "
+    "no respondieron. Elimínalo y vuelve a subirlo en unos minutos."
+)
 _CHUNK = 1024 * 1024
 
 
@@ -64,19 +68,25 @@ class DocumentService:
         try:
             chunks = self.agent.ingest(tmp_path, document_id, filename)
             self.repo.update_document(document_id, status="ready", chunks=chunks, error=None)
-        except Exception as exc:
-            logger.exception("Error procesando %s", filename)
+        except ValueError as exc:
+            # Formato inválido, archivo sin texto, PDF escaneado...: mensaje del agente para el usuario
+            logger.warning("Documento rechazado %s: %s", filename, exc)
             self.repo.update_document(document_id, status="error", error=str(exc)[:300] or "Error al procesar.")
+        except Exception:
+            logger.exception("Error procesando %s", filename)
+            self.repo.update_document(document_id, status="error", error=INGEST_DOWN_MESSAGE)
         finally:
             _remove(tmp_path)
 
     def list(self, user: CurrentUser) -> list[dict]:
-        return [{**d, "is_owner": d["user_id"] == user.id} for d in self.repo.list_documents()]
+        return [{**d, "is_owner": d.get("user_id") == user.id} for d in self.repo.list_documents()]
 
     def delete(self, user: CurrentUser, document_id: str) -> None:
         doc = self.repo.get_document(document_id)
         if doc is None:
             raise HTTPException(status.HTTP_404_NOT_FOUND, "El documento no existe.")
+        if doc.get("user_id") is None:
+            raise HTTPException(status.HTTP_403_FORBIDDEN, "Los documentos de la base inicial no se pueden eliminar.")
         if doc["user_id"] != user.id:
             raise HTTPException(status.HTTP_403_FORBIDDEN, "Solo quien subió el documento puede eliminarlo.")
         try:

@@ -18,7 +18,7 @@ os.environ.update({
 
 from fastapi.testclient import TestClient  # noqa: E402
 
-from agents.loader import get_agent  # noqa: E402
+from services.agent_gateway import get_agent  # noqa: E402
 from app.core.config import get_settings  # noqa: E402
 from repositories import get_repository  # noqa: E402
 

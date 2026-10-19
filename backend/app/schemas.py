@@ -42,7 +42,7 @@ class ChatResponse(BaseModel):
 
 class Document(BaseModel):
     id: str
-    user_id: str
+    user_id: str | None = None  # None = base de conocimiento inicial (corpus)
     filename: str
     content_type: str | None = None
     size_bytes: int

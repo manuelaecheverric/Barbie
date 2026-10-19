@@ -1,4 +1,4 @@
-from agents.loader import get_agent
+from services.agent_gateway import get_agent
 from repositories import get_repository
 from services.chat_service import ChatService
 from services.document_service import DocumentService

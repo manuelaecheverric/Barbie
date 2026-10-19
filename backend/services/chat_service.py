@@ -1,15 +1,13 @@
-"""Lógica del chat: conversación -> historial -> agente -> guardar respuesta."""
+"""Lógica del chat: conversación -> historial -> agente -> guardar pregunta y respuesta."""
 import logging
 
 from fastapi import HTTPException, status
 
-from agents.loader import normalize_answer
 from app.core.config import get_settings
 from app.core.security import CurrentUser
+from services.agent_gateway import AGENT_DOWN_MESSAGE, AgentUnavailable, normalize_answer
 
 logger = logging.getLogger(__name__)
-
-AGENT_DOWN_MESSAGE = "El agente no está disponible en este momento. Intenta de nuevo en unos segundos."
 
 
 def _title_from(question: str) -> str:
@@ -27,6 +25,7 @@ class ChatService:
         if not question:
             raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "La pregunta no puede estar vacía.")
 
+        is_new = not conversation_id
         if conversation_id:
             conversation = self.repo.get_conversation(user.id, conversation_id)
             if conversation is None:
@@ -34,24 +33,33 @@ class ChatService:
         else:
             conversation = self.repo.create_conversation(user.id, _title_from(question))
 
+        # Los últimos N mensajes, en orden cronológico, para preguntas de seguimiento
         window = get_settings().history_window
         previous = self.repo.list_messages(user.id, conversation["id"])[-window:] if window else []
         history = [{"role": m["role"], "content": m["content"]} for m in previous]
 
-        question_msg = self.repo.add_message(conversation["id"], user.id, "user", question)
-
+        # Primero se consulta al agente: si falla, no queda una pregunta huérfana en el historial
         try:
             result = normalize_answer(self.agent.ask(question, user.id, history))
-        except Exception:  # el agente o Ollama fallaron
+        except AgentUnavailable as exc:
+            self._discard(user, conversation, is_new)
+            raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, str(exc))
+        except Exception:
             logger.exception("Error ejecutando el agente")
+            self._discard(user, conversation, is_new)
             raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, AGENT_DOWN_MESSAGE)
 
+        question_msg = self.repo.add_message(conversation["id"], user.id, "user", question)
         answer_msg = self.repo.add_message(
             conversation["id"], user.id, "assistant", result["answer"],
-            sources=result.get("sources", []), rejected=result.get("rejected", False),
+            sources=result["sources"], rejected=result["rejected"],
         )
         conversation = self.repo.touch_conversation(conversation["id"])
         return {"conversation": conversation, "question": question_msg, "answer": answer_msg}
+
+    def _discard(self, user: CurrentUser, conversation: dict, is_new: bool) -> None:
+        if is_new:
+            self.repo.delete_conversation(user.id, conversation["id"])
 
     def list_conversations(self, user: CurrentUser) -> list[dict]:
         return self.repo.list_conversations(user.id)

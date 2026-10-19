@@ -6,7 +6,7 @@ Agente inteligente que responde preguntas sobre el universo Barbie: las películ
 
 | | |
 |---|---|
-| **Frontend** | React 18 + Vite, desplegado en Vercel |
+| **Frontend** | React 18 + Vite, desplegado en Vercel; animación de carga con lottie-web |
 | **Backend** | FastAPI (Python 3.11), desplegado en Render |
 | **Autenticación** | Supabase Auth (JWT), con todos los endpoints de `/api` protegidos |
 | **Historial y documentos** | Supabase Postgres con Row Level Security |
@@ -16,15 +16,25 @@ Agente inteligente que responde preguntas sobre el universo Barbie: las películ
 
 > Pon aquí la URL del frontend y la del backend cuando estén desplegados.
 
-## Capturas
+## Experiencia
+
+1. **Carga:** patrón de siluetas con la animación rosa (Lottie) mientras se descarga la puerta.
+2. **Puerta:** imagen de bienvenida a pantalla completa; un clic en cualquier parte, o Enter, la abre.
+3. **Video de entrada:** las puertas se abren en una explosión de brillos, con botón "Saltar". Se sirve en WebM y en MP4.
+4. **App:** el video termina en el mismo fondo de destellos que usa la app, así que la transición no tiene corte.
+5. **Varita mágica:** el puntero es una varita que deja una estela de destellos.
+
+| Puerta | Carga |
+|---|---|
+| ![Puerta](docs/capturas/1-puerta.jpg) | ![Carga](docs/capturas/2-carga.jpg) |
 
 | Acceso | Chat con fuentes y rechazo |
 |---|---|
-| ![Acceso](docs/capturas/auth.png) | ![Chat](docs/capturas/chat.png) |
+| ![Acceso](docs/capturas/3-acceso.jpg) | ![Chat](docs/capturas/4-chat.jpg) |
 
 | Biblioteca de documentos | Móvil |
 |---|---|
-| ![Biblioteca](docs/capturas/library.png) | <img src="docs/capturas/chat-mobile.png" width="260"> |
+| ![Biblioteca](docs/capturas/5-biblioteca.jpg) | <img src="docs/capturas/6-movil.jpg" width="260"> |
 
 ## Estructura
 
@@ -44,9 +54,11 @@ Agente inteligente que responde preguntas sobre el universo Barbie: las películ
 ├── frontend/
 │   ├── src/
 │   │   ├── pages/           # AuthPage, ChatPage, LibraryPage
-│   │   ├── components/      # Sidebar, Message, Icons
+│   │   ├── components/      # Intro (puerta + video), LoadingScreen, SparkleTrail (varita),
+│   │   │                    # Decorations, Sidebar, Message, Icons
 │   │   ├── context/         # sesión (AuthContext) y avisos (ToastContext)
 │   │   └── lib/             # cliente de Supabase, cliente de la API, rutas
+│   ├── public/              # intro/ (puerta y video), deco/ (logo, estrellas), cursor/ (varita), fondos/
 │   ├── package.json
 │   └── Dockerfile
 ├── docs/                    # diagrama, capturas, documento técnico y diapositivas
@@ -187,3 +199,7 @@ Ese PC tiene que estar encendido durante la demostración. Plan B: correr todo e
 |---|---|
 | Persona 1 | Agente e inteligencia artificial: LangGraph, RAG, Ollama, pgvector |
 | Persona 2 | Aplicación web e infraestructura: React, FastAPI, Supabase Auth, despliegue |
+
+---
+
+Proyecto académico sin fines comerciales. Barbie y su logo son marcas registradas de Mattel, Inc.; este proyecto no está afiliado a Mattel.

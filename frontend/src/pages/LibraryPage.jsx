@@ -104,9 +104,9 @@ export default function LibraryPage() {
   }
 
   return (
-    <section className="box library">
-      <header className="box__head">
-        <h1 className="box__title">Biblioteca</h1>
+    <section className="panel glass library">
+      <header className="panel__head">
+        <h1 className="panel__title">Biblioteca</h1>
         <p className="muted">Los documentos que subas alimentan las respuestas del oráculo.</p>
       </header>
 

@@ -92,15 +92,15 @@ export default function ChatPage({ conversationId, conversations, onChanged }) {
   const empty = !conversationId && messages.length === 0;
 
   return (
-    <section className="box chat">
-      <header className="box__head">
-        <h1 className="box__title">{title || (conversationId ? "Conversación" : "Nueva conversación")}</h1>
+    <section className="panel glass chat">
+      <header className="panel__head">
+        <h1 className="panel__title">{title || (conversationId ? "Conversación" : "Nueva conversación")}</h1>
       </header>
 
       <div className="window" aria-live="polite">
         {empty ? (
           <div className="welcome">
-            <Sparkle className="welcome__star" size={44} />
+            <img src="/deco/estrellas-rosas.png" alt="" className="welcome__star" />
             <h2 className="welcome__title">¿Qué quieres saber del mundo Barbie?</h2>
             <p className="muted">
               Respondo solo con lo que hay en la biblioteca de documentos. Si no lo sé, te lo digo.
@@ -122,7 +122,7 @@ export default function ChatPage({ conversationId, conversations, onChanged }) {
             {pending && (
               <div className="msg msg--bot">
                 <span className="msg__avatar" aria-hidden="true">
-                  <Sparkle size={16} />
+                  <img src="/deco/estrella-brillante.png" alt="" />
                 </span>
                 <div className="msg__bubble typing" aria-label="El oráculo está buscando en la biblioteca">
                   <Sparkle size={12} />

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { isConfigured } from "../lib/supabase";
-import { Sparkle } from "../components/Icons";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -67,37 +66,23 @@ export default function AuthPage() {
 
   return (
     <main className="auth">
-      <section className="auth__box" aria-hidden="true">
-        <div className="auth__window">
-          <span className="auth__glare" />
-          <Sparkle className="float float--a" size={34} />
-          <Sparkle className="float float--b" size={18} />
-          <Sparkle className="float float--c" size={26} />
-          <p className="auth__wordmark">
-            Pink
-            <br />
-            Oracle
-          </p>
-        </div>
-        <p className="auth__tagline">
-          Pregúntale todo sobre las películas, la familia, las amigas, Ken y más de sesenta años de historia de Barbie.
-        </p>
-      </section>
+      <div className="auth__brand">
+        <img src="/deco/logo-barbie.png" alt="Barbie" className="auth__logo" />
+        <p className="auth__name">Pink Oracle</p>
+        <p className="auth__tagline">Pregúntale todo sobre las películas, la familia, las amigas, Ken y la historia de Barbie.</p>
+      </div>
 
-      <section className="auth__panel">
-        <div className="tabs" role="tablist" aria-label="Acceso">
-          <button role="tab" aria-selected={!isRegister} className="tab" onClick={() => switchMode("login")}>
+      <section className="auth__card glass">
+        <div className="segmented" role="tablist" aria-label="Acceso">
+          <button role="tab" aria-selected={!isRegister} className="segmented__opt" onClick={() => switchMode("login")}>
             Iniciar sesión
           </button>
-          <button role="tab" aria-selected={isRegister} className="tab" onClick={() => switchMode("register")}>
+          <button role="tab" aria-selected={isRegister} className="segmented__opt" onClick={() => switchMode("register")}>
             Crear cuenta
           </button>
         </div>
 
         <h1 className="auth__title">{isRegister ? "Crea tu cuenta" : "Hola de nuevo"}</h1>
-        <p className="muted">
-          {isRegister ? "Solo necesitas un correo y una contraseña." : "Entra para seguir conversando con el oráculo."}
-        </p>
 
         {!isConfigured && (
           <p className="alert alert--error">
@@ -133,11 +118,13 @@ export default function AuthPage() {
               <input type="password" value={form.confirm} onChange={update("confirm")} autoComplete="new-password" />
             </Field>
           )}
-          <button className="btn btn--primary btn--block" disabled={status.busy}>
+          <button className="btn btn--primary btn--block btn--lg" disabled={status.busy}>
             {status.busy ? "Un momento…" : isRegister ? "Crear cuenta" : "Iniciar sesión"}
           </button>
         </form>
       </section>
+
+      <p className="legal">Proyecto académico sin fines comerciales. Barbie es una marca registrada de Mattel, Inc.</p>
     </main>
   );
 }

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { navigate } from "../lib/useHashRoute";
-import { FileIcon, Sparkle } from "./Icons";
+import { FileIcon } from "./Icons";
 
 export default function Message({ message }) {
   if (message.role === "user") {
@@ -31,7 +31,7 @@ export default function Message({ message }) {
     return (
       <div className="msg msg--bot">
         <span className="msg__avatar msg__avatar--muted" aria-hidden="true">
-          <Sparkle size={16} />
+          <img src="/deco/cabeza.png" alt="" />
         </span>
         <div className="msg__bubble msg__bubble--rejected">
           <p>{message.content}</p>
@@ -49,7 +49,7 @@ export default function Message({ message }) {
   return (
     <div className="msg msg--bot">
       <span className="msg__avatar" aria-hidden="true">
-        <Sparkle size={16} />
+        <img src="/deco/estrella-brillante.png" alt="" />
       </span>
       <div className="msg__body">
         <p className="msg__bubble">{message.content}</p>

@@ -15,6 +15,7 @@ export default function ChatPage({ conversationId, conversations, onChanged }) {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [pending, setPending] = useState(false);
+  const [slow, setSlow] = useState(false);
   const [draft, setDraft] = useState("");
   const skipLoad = useRef(null);
   const endRef = useRef(null);
@@ -46,7 +47,17 @@ export default function ChatPage({ conversationId, conversations, onChanged }) {
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  }, [messages, pending]);
+  }, [messages, pending, slow]);
+
+  // El modelo local tarda 5–20 s (hasta ~1 min la primera vez): avisar si se demora
+  useEffect(() => {
+    if (!pending) {
+      setSlow(false);
+      return;
+    }
+    const t = setTimeout(() => setSlow(true), 12000);
+    return () => clearTimeout(t);
+  }, [pending]);
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -124,11 +135,11 @@ export default function ChatPage({ conversationId, conversations, onChanged }) {
                 <span className="msg__avatar" aria-hidden="true">
                   <img src="/deco/estrella-brillante.png" alt="" />
                 </span>
-                <div className="msg__bubble typing" aria-label="El oráculo está buscando en la biblioteca">
+                <div className="msg__bubble typing" aria-label="Barbie está escribiendo">
                   <Sparkle size={12} />
                   <Sparkle size={12} />
                   <Sparkle size={12} />
-                  <span>Buscando en la biblioteca…</span>
+                  <span>{slow ? "Sigo buscando… la primera respuesta puede tardar hasta un minuto." : "Barbie está escribiendo…"}</span>
                 </div>
               </div>
             )}

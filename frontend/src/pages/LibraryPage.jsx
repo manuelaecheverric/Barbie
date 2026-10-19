@@ -166,10 +166,16 @@ export default function LibraryPage() {
                       {d.filename}
                     </strong>
                     <span className="doc__meta">
-                      {formatSize(d.size_bytes)}
-                      {d.status === "ready" && `, ${d.chunks} fragmentos`}
-                      {`, ${dateFmt.format(new Date(d.created_at))}`}
-                      {!d.is_owner && ", subido por otra persona"}
+                      {d.user_id
+                        ? [
+                            formatSize(d.size_bytes),
+                            d.status === "ready" && `${d.chunks} fragmentos`,
+                            dateFmt.format(new Date(d.created_at)),
+                            !d.is_owner && "subido por otra persona",
+                          ]
+                            .filter(Boolean)
+                            .join(", ")
+                        : `Base de conocimiento inicial, ${d.chunks} fragmentos`}
                     </span>
                     {d.status === "error" && d.error && <span className="doc__error">{d.error}</span>}
                   </div>

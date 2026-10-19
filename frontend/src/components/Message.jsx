@@ -35,9 +35,11 @@ export default function Message({ message }) {
         </span>
         <div className="msg__bubble msg__bubble--rejected">
           <p>{message.content}</p>
-          <p className="msg__hint">
-            Si tienes un documento sobre este tema, súbelo a la biblioteca y vuelve a preguntar.
-          </p>
+          {!/subir/i.test(message.content) && (
+            <p className="msg__hint">
+              Si tienes un documento sobre este tema, súbelo a la biblioteca y vuelve a preguntar.
+            </p>
+          )}
           <button className="btn btn--ghost btn--sm" onClick={() => navigate("/biblioteca")}>
             Ir a la biblioteca
           </button>

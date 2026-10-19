@@ -1,4 +1,17 @@
+# Python
+.venv/
+__pycache__/
+.pytest_cache/
+
+# Node
+node_modules/
+dist/
+
+# Secretos (nunca a GitHub)
 .env
+.env.local
+
+# Sistema y editores
 .DS_Store
 Thumbs.db
 .vscode/

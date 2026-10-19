@@ -12,7 +12,7 @@ export default function Sidebar({ route, conversations, loading, onDelete, open,
 
   return (
     <aside className={`sidebar glass ${open ? "sidebar--open" : ""}`} aria-label="Tus conversaciones">
-      <button className="btn btn--primary btn--block" onClick={() => go("/chat")}>
+      <button className="btn btn--primary btn--block sidebar__new" onClick={() => go("/chat")}>
         <Plus /> Nueva conversación
       </button>
 
@@ -43,7 +43,7 @@ export default function Sidebar({ route, conversations, loading, onDelete, open,
             ) : (
               <>
                 <button className="conv__title" onClick={() => go(`/chat/${c.id}`)} title={c.title}>
-                  {c.title}
+                  <span className="conv__text">{c.title}</span>
                 </button>
                 <button className="iconbtn" aria-label={`Eliminar ${c.title}`} onClick={() => setConfirming(c.id)}>
                   <Trash width={16} height={16} />

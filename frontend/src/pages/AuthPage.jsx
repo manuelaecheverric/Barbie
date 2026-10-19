@@ -68,7 +68,6 @@ export default function AuthPage() {
     <main className="auth">
       <div className="auth__brand">
         <img src="/deco/logo-barbie.png" alt="Barbie" className="auth__logo" />
-        <p className="auth__name">Pink Oracle</p>
         <p className="auth__tagline">Pregúntale todo sobre las películas, la familia, las amigas, Ken y la historia de Barbie.</p>
       </div>
 

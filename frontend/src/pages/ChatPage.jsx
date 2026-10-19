@@ -4,6 +4,9 @@ import { Send, Sparkle } from "../components/Icons";
 import { api } from "../lib/api";
 import { navigate } from "../lib/useHashRoute";
 
+// La primera respuesta de la sesión es la más lenta (el modelo se carga en memoria)
+let firstAnswerDone = false;
+
 const SUGGESTIONS = [
   "¿Quién creó a Barbie y en qué año apareció?",
   "¿Cómo se llaman las hermanas de Barbie?",
@@ -68,11 +71,13 @@ export default function ChatPage({ conversationId, conversations, onChanged }) {
       const question = text.trim();
       if (!question || pending) return;
       setDraft("");
+      if (inputRef.current) inputRef.current.style.height = "auto";
       const tempId = `tmp-${Date.now()}`;
       setMessages((m) => [...m.filter((x) => !x.error), { id: tempId, role: "user", content: question }]);
       setPending(true);
       try {
         const res = await api.ask(question, conversationId);
+        firstAnswerDone = true;
         setMessages((m) => [...m.filter((x) => x.id !== tempId), res.question, res.answer]);
         if (res.conversation.id !== conversationId) {
           skipLoad.current = res.conversation.id;
@@ -132,14 +137,16 @@ export default function ChatPage({ conversationId, conversations, onChanged }) {
             ))}
             {pending && (
               <div className="msg msg--bot">
-                <span className="msg__avatar" aria-hidden="true">
-                  <img src="/deco/estrella-brillante.png" alt="" />
-                </span>
+                <img src="/deco/avatar-barbie.png" alt="" className="msg__avatar msg__avatar--thinking" />
                 <div className="msg__bubble typing" aria-label="Barbie está escribiendo">
                   <Sparkle size={12} />
                   <Sparkle size={12} />
                   <Sparkle size={12} />
-                  <span>{slow ? "Sigo buscando… la primera respuesta puede tardar hasta un minuto." : "Barbie está escribiendo…"}</span>
+                  <span>{!slow
+                      ? "Barbie está escribiendo…"
+                      : firstAnswerDone
+                        ? "Sigo buscando para darte la mejor respuesta…"
+                        : "Sigo buscando… la primera respuesta puede tardar hasta un minuto."}</span>
                 </div>
               </div>
             )}
@@ -164,7 +171,11 @@ export default function ChatPage({ conversationId, conversations, onChanged }) {
           rows={1}
           value={draft}
           maxLength={2000}
-          onChange={(e) => setDraft(e.target.value)}
+          onChange={(e) => {
+            setDraft(e.target.value);
+            e.target.style.height = "auto";
+            e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
+          }}
           onKeyDown={onKeyDown}
           placeholder="Pregunta sobre películas, personajes o la historia de Barbie"
         />

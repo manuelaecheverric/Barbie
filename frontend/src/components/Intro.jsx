@@ -67,9 +67,9 @@ export default function Intro({ onDone }) {
         onPlaying={() => setBuffering(false)}
         aria-hidden="true"
       >
-        {/* WebM pesa menos; MP4 queda de respaldo (Safari) */}
-        <source src={`${VIDEO}.webm`} type="video/webm" />
-        <source src={`${VIDEO}.mp4`} type="video/mp4" onError={() => phase === "video" && finish()} />
+        {/* MP4 original (mejor calidad); WebM solo si el navegador no reproduce MP4 */}
+        <source src={`${VIDEO}.mp4`} type="video/mp4" />
+        <source src={`${VIDEO}.webm`} type="video/webm" onError={() => phase === "video" && finish()} />
       </video>
 
       {phase !== "video" && (

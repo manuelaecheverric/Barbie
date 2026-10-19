@@ -30,9 +30,7 @@ export default function Message({ message }) {
   if (message.rejected) {
     return (
       <div className="msg msg--bot">
-        <span className="msg__avatar msg__avatar--muted" aria-hidden="true">
-          <img src="/deco/cabeza.png" alt="" />
-        </span>
+        <img src="/deco/avatar-barbie.png" alt="" className="msg__avatar msg__avatar--muted" />
         <div className="msg__bubble msg__bubble--rejected">
           <p>{message.content}</p>
           {!/subir/i.test(message.content) && (
@@ -50,9 +48,7 @@ export default function Message({ message }) {
 
   return (
     <div className="msg msg--bot">
-      <span className="msg__avatar" aria-hidden="true">
-        <img src="/deco/estrella-brillante.png" alt="" />
-      </span>
+      <img src="/deco/avatar-barbie.png" alt="" className="msg__avatar" />
       <div className="msg__body">
         <p className="msg__bubble">{message.content}</p>
         {message.sources?.length > 0 && <Sources sources={message.sources} />}

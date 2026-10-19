@@ -67,7 +67,7 @@ class MockAgent:
             "answer": f"{answer}\n\n(Respuesta del agente simulado: aún no está conectado el modelo local.)",
             "rejected": False,
             "sources": [
-                {"document": item["document"], "fragment": item["fragment"], "score": round(0.7 + 0.1 * n, 2)}
+                {"doc": item["document"], "fragment": item["fragment"], "score": round(0.7 + 0.1 * n, 2)}
                 for n, item in hits[:2]
             ],
         }

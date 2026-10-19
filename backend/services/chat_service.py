@@ -3,6 +3,7 @@ import logging
 
 from fastapi import HTTPException, status
 
+from agents.loader import normalize_answer
 from app.core.config import get_settings
 from app.core.security import CurrentUser
 
@@ -40,7 +41,7 @@ class ChatService:
         question_msg = self.repo.add_message(conversation["id"], user.id, "user", question)
 
         try:
-            result = self.agent.ask(question, user.id, history)
+            result = normalize_answer(self.agent.ask(question, user.id, history))
         except Exception:  # el agente o Ollama fallaron
             logger.exception("Error ejecutando el agente")
             raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, AGENT_DOWN_MESSAGE)

@@ -2,20 +2,23 @@
 
 El módulo del agente (por defecto `agents/graph.py`) debe exponer estas tres
 funciones con exactamente estas firmas. La API las llama y no le importa
-cómo estén construidas por dentro (LangGraph, ChromaDB, Ollama...).
+cómo estén construidas por dentro (LangGraph, pgvector, Ollama...).
 
     def ask(question: str, user_id: str, history: list[HistoryItem]) -> AgentAnswer
-    def ingest(file_path: str, document_id: str, filename: str) -> int
-    def delete_document(document_id: str) -> None
+    def ingest(file_path: str, doc_id: str, filename: str) -> int
+    def delete_document(doc_id: str) -> None
 
-- `ask` devuelve la respuesta. Si no hay contexto suficiente debe devolver
-  `rejected=True` y en `answer` el mensaje de rechazo
-  (ver REJECTION_MESSAGE).
+- `ask` recibe en `history` los últimos mensajes (HISTORY_WINDOW, 6 por defecto)
+  como [{role, content}] y devuelve {answer, rejected, sources:[{doc, fragment, score}]}.
+  Si no hay contexto suficiente devuelve `rejected=True` y en `answer` el
+  mensaje de rechazo (ver REJECTION_MESSAGE).
 - `ingest` extrae el texto, lo fragmenta, genera embeddings y los guarda en la
-  base vectorial con metadata `document_id` y `filename`. Devuelve cuántos
+  base vectorial (pgvector en Supabase) con metadata `doc_id` y `filename`. Devuelve cuántos
   fragmentos guardó. Si falla, lanza una excepción con un mensaje claro.
 - `delete_document` borra de la base vectorial todos los fragmentos de ese
-  `document_id`.
+  `doc_id`.
+
+La base de conocimiento es compartida por todos los usuarios.
 """
 from typing import Literal, Protocol, TypedDict
 
@@ -28,10 +31,10 @@ class HistoryItem(TypedDict):
 
 
 class SourceItem(TypedDict, total=False):
-    document: str  # nombre del archivo
+    doc: str  # nombre del archivo
     fragment: str  # texto del fragmento usado
     score: float  # similitud (0 a 1)
-    document_id: str
+    doc_id: str
 
 
 class AgentAnswer(TypedDict):
@@ -43,6 +46,6 @@ class AgentAnswer(TypedDict):
 class Agent(Protocol):
     def ask(self, question: str, user_id: str, history: list[HistoryItem]) -> AgentAnswer: ...
 
-    def ingest(self, file_path: str, document_id: str, filename: str) -> int: ...
+    def ingest(self, file_path: str, doc_id: str, filename: str) -> int: ...
 
-    def delete_document(self, document_id: str) -> None: ...
+    def delete_document(self, doc_id: str) -> None: ...

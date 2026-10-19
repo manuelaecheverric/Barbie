@@ -40,10 +40,10 @@ def normalize_answer(raw) -> AgentAnswer:
         if isinstance(s, dict):
             sources.append(
                 {
-                    "document": str(s.get("document") or s.get("source") or s.get("filename") or "documento"),
+                    "document": str(s.get("doc") or s.get("document") or s.get("source") or s.get("filename") or "documento"),
                     "fragment": str(s.get("fragment") or s.get("page_content") or s.get("content") or "")[:1200],
                     "score": s.get("score"),
-                    "document_id": s.get("document_id"),
+                    "document_id": s.get("doc_id") or s.get("document_id"),
                 }
             )
     return {"answer": answer or REJECTION_MESSAGE, "rejected": rejected, "sources": [] if rejected else sources}

@@ -3,6 +3,10 @@
 -- Ejecutar UNA vez en: Supabase > SQL Editor > New query > Run
 -- =====================================================================
 
+-- Extensión para la base vectorial (pgvector). La tabla de fragmentos la crea
+-- el código del agente (Persona 1); cada fragmento guarda doc_id = documents.id
+create extension if not exists vector;
+
 -- Conversaciones de cada usuario
 create table if not exists public.conversations (
   id          uuid primary key default gen_random_uuid(),

@@ -14,7 +14,7 @@ httpx==0.28.1
 # langchain
 # langgraph
 # langchain-ollama
-# langchain-chroma
-# chromadb
+# langchain-postgres
+# psycopg[binary]
 # pypdf
 # python-docx

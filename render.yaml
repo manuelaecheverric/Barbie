@@ -26,5 +26,16 @@ services:
         sync: false
       - key: SUPABASE_JWT_SECRET
         sync: false
-      - key: OLLAMA_BASE_URL
+      - key: OLLAMA_URL
+        sync: false
+      - key: OLLAMA_USER
+        sync: false
+      - key: OLLAMA_PASS
+        sync: false
+      - key: OLLAMA_MODEL
+        value: qwen2.5:3b
+      - key: EMBEDDING_MODEL
+        value: bge-m3
+      # Prefijo obligatorio: postgresql+psycopg:// (Session pooler de Supabase)
+      - key: DATABASE_URL
         sync: false

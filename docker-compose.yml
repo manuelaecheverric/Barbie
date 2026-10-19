@@ -1,25 +1,20 @@
-# Levanta todo el proyecto en local: docker compose up --build
+# Levanta backend y frontend en local: docker compose up --build
 # Antes: copia .env.example como .env y llena los valores.
+# Ollama corre directamente en Windows (no en Docker); el backend lo alcanza
+# por host.docker.internal. pgvector vive en Supabase.
 services:
-  ollama:
-    image: ollama/ollama:latest
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama:/root/.ollama
-
   backend:
     build: ./backend
     env_file: .env
     environment:
-      OLLAMA_BASE_URL: http://ollama:11434
+      OLLAMA_URL: http://host.docker.internal:11434
+      OLLAMA_USER: ""
+      OLLAMA_PASS: ""
       FRONTEND_URL: http://localhost:5173
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "8000:8000"
-    volumes:
-      - chroma:/app/chroma_data
-    depends_on:
-      - ollama
 
   frontend:
     build:
@@ -32,7 +27,3 @@ services:
       - "5173:80"
     depends_on:
       - backend
-
-volumes:
-  ollama:
-  chroma:

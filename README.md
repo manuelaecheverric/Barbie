@@ -11,8 +11,8 @@ Agente inteligente que responde preguntas sobre el universo Barbie: las películ
 | **Autenticación** | Supabase Auth (JWT), con todos los endpoints de `/api` protegidos |
 | **Historial y documentos** | Supabase Postgres con Row Level Security |
 | **Agente** | LangChain + LangGraph |
-| **Modelo local** | Ollama |
-| **Base vectorial** | ChromaDB |
+| **Modelo local** | Ollama con `qwen2.5:3b` (LLM) y `bge-m3` (embeddings), expuesto con ngrok |
+| **Base vectorial** | pgvector en Supabase |
 
 > Pon aquí la URL del frontend y la del backend cuando estén desplegados.
 
@@ -36,7 +36,7 @@ Agente inteligente que responde preguntas sobre el universo Barbie: las películ
 │   ├── services/            # lógica de negocio (chat y carga de documentos)
 │   ├── repositories/        # acceso a datos (Supabase o memoria)
 │   ├── agents/              # agente LangGraph + contrato con la API
-│   ├── vectorstore/         # ChromaDB y embeddings
+│   ├── vectorstore/         # pgvector y embeddings
 │   ├── supabase/schema.sql  # tablas y políticas RLS
 │   ├── tests/               # pruebas automáticas de la API
 │   ├── requirements.txt
@@ -85,7 +85,12 @@ Con `AGENT_MODE=mock` se usa un agente simulado, para probar la interfaz sin el 
 
 ## Ejecutar en local (Windows)
 
-Requisitos: Python 3.10+, Node.js 20+ y Ollama.
+Requisitos: Python 3.10+, Node.js 20+ y Ollama con los modelos del agente:
+
+```powershell
+ollama pull qwen2.5:3b
+ollama pull bge-m3
+```
 
 ### 1. Supabase (una sola vez)
 
@@ -128,10 +133,22 @@ docker compose up --build
 
 ## Despliegue
 
+### Ollama con ngrok (modelo local)
+
+El modelo corre en el PC con más RAM y se expone con un dominio fijo gratis de ngrok, protegido con usuario y contraseña:
+
+```powershell
+ollama serve
+ngrok http 11434 --url=TU-DOMINIO.ngrok-free.app --basic-auth="usuario:contraseña" --host-header="localhost:11434"
+```
+
+Ese PC tiene que estar encendido durante la demostración. Plan B: correr todo en local (`OLLAMA_URL=http://localhost:11434`).
+
 ### Backend en Render
 
 1. En Render ve a **New > Blueprint**, elige este repositorio y Render leerá `render.yaml`.
-2. Llena las variables marcadas: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `FRONTEND_URL` (la URL de Vercel) y `OLLAMA_BASE_URL`.
+2. Llena las variables marcadas: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `FRONTEND_URL` (la URL de Vercel), `OLLAMA_URL`, `OLLAMA_USER`, `OLLAMA_PASS` y `DATABASE_URL`.
+   - `DATABASE_URL`: en Supabase ve a **Connect** y copia la cadena del **Session pooler**, porque la conexión directa usa IPv6 y Render no lo soporta. Cambia el prefijo `postgresql://` por **`postgresql+psycopg://`**.
 3. Comprueba que `https://<tu-backend>.onrender.com/health` responde `{"status": "ok"}`.
 
 ### Frontend en Vercel
@@ -150,7 +167,9 @@ docker compose up --build
 | `FRONTEND_URL` | backend | Orígenes permitidos por CORS |
 | `DATA_BACKEND` | backend | `supabase` o `memory` |
 | `AGENT_MODE` / `AGENT_MODULE` | backend | `mock` o `real`, y el módulo del agente |
-| `OLLAMA_BASE_URL` | backend | Dónde corre Ollama |
+| `OLLAMA_URL` / `OLLAMA_USER` / `OLLAMA_PASS` | backend | URL de ngrok hacia Ollama y sus credenciales |
+| `OLLAMA_MODEL` / `EMBEDDING_MODEL` | backend | `qwen2.5:3b` y `bge-m3` |
+| `DATABASE_URL` | backend | Postgres de Supabase para pgvector (`postgresql+psycopg://`, Session pooler) |
 | `MAX_UPLOAD_MB` / `ALLOWED_EXTENSIONS` | backend | Límites de carga de archivos |
 | `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` | frontend | Cliente público de Supabase |
 | `VITE_API_URL` | frontend | URL del backend |
@@ -166,5 +185,5 @@ docker compose up --build
 
 | Persona | Responsabilidad |
 |---|---|
-| Persona 1 | Agente e inteligencia artificial: LangGraph, RAG, Ollama, ChromaDB |
+| Persona 1 | Agente e inteligencia artificial: LangGraph, RAG, Ollama, pgvector |
 | Persona 2 | Aplicación web e infraestructura: React, FastAPI, Supabase Auth, despliegue |

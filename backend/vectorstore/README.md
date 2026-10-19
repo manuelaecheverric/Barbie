@@ -1,10 +1,8 @@
 # vectorstore/ — Base vectorial (Persona 1)
 
-Configuración de ChromaDB y embeddings. La usa el agente en `agents/`.
+pgvector en Supabase (la misma base de datos del historial). Se conecta con
+`DATABASE_URL` (prefijo `postgresql+psycopg://`, Session pooler).
 
-Recomendaciones:
-
-- Leer la ruta de persistencia de una variable de entorno, por ejemplo
-  `CHROMA_PERSIST_DIR=./chroma_data`.
-- Guardar en cada fragmento la metadata `document_id` y `filename`, para que la
-  API pueda borrar documentos y mostrar las fuentes en el chat.
+- Cada fragmento guarda la metadata `doc_id` y `filename`, para borrar
+  documentos y mostrar las fuentes en el chat.
+- `doc_id` es el `id` de la tabla `public.documents`.

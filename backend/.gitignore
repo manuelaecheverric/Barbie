@@ -2,4 +2,3 @@
 __pycache__/
 .env
 .pytest_cache/
-chroma_data/

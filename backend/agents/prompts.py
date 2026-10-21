@@ -42,6 +42,8 @@ MENSAJE_RECHAZO_CON_TEMAS = (
 # Los archivos que no estén aquí se nombran a partir del nombre del archivo
 # ("10-moda-y-estilo.md" -> "moda y estilo"). Completa los que falten.
 TEMAS_POR_DOCUMENTO = {
+    "duvan": "Duvan, el amigo de Ken",
+    "13-raquelle": "Raquelle",
     "01-quien-es-barbie": "quién soy yo",
     "02-historia-de-la-muneca": "mi historia como muñeca",
     "03-ken": "Ken",
@@ -91,6 +93,7 @@ Escribe solamente la nueva pregunta ya reescrita, en una sola línea."""
 # ---------- Nodo: evaluar contexto ----------
 # El validador sigue neutro y estricto.
 # v3: también recibe la pregunta original, por si la reescritura quedó rara.
+# v6: acepta pedidos abiertos ("cuéntame sobre X") y preguntas por varias personas.
 PROMPT_EVALUAR = """Lee los fragmentos y decide si contienen la información necesaria para responder la pregunta.
 
 Fragmentos:
@@ -100,6 +103,8 @@ Pregunta: {pregunta}
 (El usuario se la escribió a Barbie hablándole de "tú": "{pregunta_original}")
 
 Si algún fragmento contiene la respuesta, aunque use otras palabras, escribe SI.
+Si la pregunta pide que le cuenten sobre una persona o un tema (por ejemplo "cuéntame sobre...", "algo más sobre..."), basta con que algún fragmento hable de esa persona o tema: escribe SI.
+Si la pregunta pregunta por varias personas (por ejemplo "¿quiénes son...?"), basta con que algún fragmento nombre al menos a una: escribe SI.
 Si ninguno la contiene, o solo hablan de temas parecidos, escribe NO.
 Responde únicamente SI o NO."""
 

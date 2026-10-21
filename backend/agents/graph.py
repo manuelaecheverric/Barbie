@@ -186,6 +186,26 @@ _AFIRMACIONES = {
     "cuentame mas", "dime mas", "mas", "quiero saber mas", "si cuentame",
 }
 
+# Palabras con las que se arman los "sí": "sí, cuéntame más", "claro que sí, porfa".
+_PALABRAS_AFIRMACION = {
+    "si", "sip", "sii", "siii", "claro", "dale", "bueno", "ok", "okay", "va", "vale",
+    "porfa", "por", "favor", "obvio", "de", "una", "quiero", "me", "encantaria",
+    "cuentame", "dime", "mas", "saber", "que", "pues", "y", "porfavor", "please",
+}
+
+
+def _es_afirmacion(texto: str) -> bool:
+    """'si' / 'sí, cuéntame más' / 'claro que sí, porfa' -> True."""
+    palabras = texto.split()
+    if not palabras or len(palabras) > 6:
+        return False
+    if texto in _AFIRMACIONES:
+        return True
+    return all(p in _PALABRAS_AFIRMACION for p in palabras) and bool(
+        {"si", "sip", "sii", "siii", "claro", "dale", "obvio", "cuentame", "dime", "porfa"} & set(palabras)
+    )
+
+
 # Palabras de pedido que no sirven como palabra clave ("háblame de Raquelle").
 _PALABRAS_PEDIDO = {
     "hablame", "cuentame", "dime", "cuenta", "habla", "sabes", "saber", "quiero",
@@ -194,12 +214,28 @@ _PALABRAS_PEDIDO = {
 }
 
 
+# Palabras de 3 letras que no son nombres (para no perder nombres cortos como "Ken").
+_CORTAS_COMUNES = {"son", "tus", "mis", "han", "dos", "ver", "sea", "asi", "tan", "les", "eso", "esa", "ese", "fin", "vez", "dia", "uno"}
+
+
 def _palabras_clave(texto: str) -> set[str]:
-    """'¿Quién es Raquelle?' -> {'raquelle'}."""
+    """'¿Quién es Raquelle?' -> {'raquelle'}; 'algo más sobre Ken' -> {'ken'}."""
     return {
         p for p in _normalizar(texto).split()
-        if len(p) >= 4 and p not in _PALABRAS_VACIAS and p not in _PALABRAS_PEDIDO
+        if len(p) >= 3 and p not in _PALABRAS_VACIAS and p not in _PALABRAS_PEDIDO
+        and p not in _CORTAS_COMUNES
     }
+
+
+# Pedidos abiertos: "cuéntame todo sobre Duvan", "háblame de Ken", "¿qué sabes de Raquelle?"
+_PEDIDOS_ABIERTOS = (
+    "cuentame", "hablame", "dime", "que sabes", "quiero saber", "que me puedes contar",
+    "que me cuentas", "platicame", "informacion sobre", "que hay de", "quien es", "quienes son",
+)
+
+
+def _es_pedido_abierto(pregunta: str) -> bool:
+    return _normalizar(pregunta).startswith(_PEDIDOS_ABIERTOS)
 
 
 def _contiene_palabra(fragmento: dict, palabras: set[str]) -> bool:
@@ -406,7 +442,7 @@ def clasificar(estado: Estado) -> dict:
         return {"intencion": "vacio", "ruta": ["clasificar"]}
 
     sin_relleno = " ".join(p for p in texto.split() if p != "barbie")
-    if estado.get("history") and sin_relleno in _AFIRMACIONES:
+    if estado.get("history") and _es_afirmacion(sin_relleno):
         return {"intencion": "afirmacion", "ruta": ["clasificar"]}
 
     encontrada = None
@@ -503,7 +539,22 @@ def recuperar(estado: Estado) -> dict:
 def evaluar(estado: Estado) -> dict:
     """Nodo validador: el LLM dice si el contexto alcanza para responder (SI/NO).
     Recibe la consulta reescrita (dice "Ken" en vez de "él" y "Barbie" en vez de "tú")
-    y también la pregunta original, por si la reescritura quedó rara."""
+    y también la pregunta original, por si la reescritura quedó rara.
+
+    v6: en pedidos abiertos ("cuéntame todo sobre Duvan", "¿quién es Raquelle?")
+    no se le pregunta al LLM: basta con que un fragmento recuperado nombre a esa
+    persona o tema (todas las palabras clave de la pregunta deben aparecer).
+    Antes Qwen decía NO porque ninguna ficha tiene "todo". Si no se cumple,
+    decide el LLM como siempre."""
+    if _es_pedido_abierto(estado["question"]):
+        claves = _palabras_clave(estado["consulta"]) | _palabras_clave(estado["question"])
+        # TODAS las palabras clave deben aparecer en algún fragmento: así
+        # "¿quién es el presidente de Colombia?" no pasa solo porque una ficha diga "Colombia".
+        if claves and all(
+            any(_contiene_palabra(f, {clave}) for f in estado["fragmentos"]) for clave in claves
+        ):
+            return {"contexto_suficiente": True, "ruta": ["evaluar"]}
+
     prompt = prompts.PROMPT_EVALUAR.format(
         contexto=_formatear_contexto(estado["fragmentos"]),
         pregunta=estado["consulta"],
